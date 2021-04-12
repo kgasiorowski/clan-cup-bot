@@ -1,0 +1,6 @@
+venv
+.idea/
+__pycache__/
+
+clan-cup.json
+secret.py
