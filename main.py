@@ -12,9 +12,15 @@ if __name__ == "__main__":
     sheet = client.open(secret.SHEET_NAME)
     sheet_instance = sheet.get_worksheet(secret.SHEET_INDEX)
 
-    content = "Current team scores:\n"
-
+    scores = {}
     for i in range(4):
-        content += f"{sheet_instance.cell(row=1,col=i+2).value}: {sheet_instance.cell(row=2,col=i+2).value}\n"
+        scores.setdefault(sheet_instance.cell(row=1, col=i+2).value, sheet_instance.cell(row=2, col=i+2).value)
+    sortedScores = dict(reversed(sorted(scores.items(), key=lambda item: item[1])))
+
+    content = "Current team scores:\n"
+    counter = 1
+    for teamScore in sortedScores.items():
+        content += f"{counter}. {teamScore[0]}: {teamScore[1]}\n"
+        counter += 1
 
     requests.post(secret.WEBHOOK_URL, {"content": content})
