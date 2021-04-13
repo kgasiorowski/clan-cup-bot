@@ -2,8 +2,24 @@ import requests
 import secret
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
+import json
+import time
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+
+def logScores(scores):
+
+    loggedScores = []
+    try:
+        with open('logged-scores.json', 'r') as loggedScoresFile:
+            loggedScores = json.load(loggedScoresFile)
+    except Exception:
+        pass  # We can just do nothing if the file doesn't exist. The next code will create it anyway
+
+    loggedScores.append({time.time(): scores})
+
+    with open('logged-scores.json', 'w+') as loggedScoresFile:
+        json.dump(loggedScores, loggedScoresFile)
 
 
 if __name__ == "__main__":
@@ -16,6 +32,8 @@ if __name__ == "__main__":
     for i in range(4):
         scores.setdefault(sheet_instance.cell(row=1, col=i+2).value, sheet_instance.cell(row=2, col=i+2).value)
     sortedScores = dict(reversed(sorted(scores.items(), key=lambda item: item[1])))
+
+    logScores(scores)
 
     content = "Current team scores:\n"
     counter = 1
