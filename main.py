@@ -2,6 +2,7 @@ import requests
 import secret
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
+from gspread.exceptions import APIError
 import json
 import time
 
@@ -26,7 +27,13 @@ if __name__ == "__main__":
     creds = ServiceAccountCredentials.from_json_keyfile_name('clan-cup.json', SCOPES)
     client = gspread.authorize(creds)
     sheet = client.open(secret.SHEET_NAME)
-    sheet_instance = sheet.get_worksheet(secret.SHEET_INDEX)
+
+    try:
+        sheet_instance = sheet.get_worksheet(secret.SHEET_INDEX)
+    except APIError:
+        content = "Looks like the Google Sheets API is having problems."
+        requests.post(secret.WEBHOOK_URL, {"content": content})
+        exit(1)
 
     scores = {}
     for i in range(4):
