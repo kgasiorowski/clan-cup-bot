@@ -9,7 +9,6 @@ import time
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 def logScores(scores):
-
     loggedScores = []
     try:
         with open('logged-scores.json', 'r') as loggedScoresFile:
@@ -27,13 +26,15 @@ if __name__ == "__main__":
     creds = ServiceAccountCredentials.from_json_keyfile_name('clan-cup.json', SCOPES)
     client = gspread.authorize(creds)
     sheet = client.open(secret.SHEET_NAME)
+    sheet_instance = None
 
-    try:
-        sheet_instance = sheet.get_worksheet(secret.SHEET_INDEX)
-    except APIError:
-        content = "Looks like the Google Sheets API is having problems."
-        requests.post(secret.WEBHOOK_URL, {"content": content})
-        exit(1)
+    while sheet_instance is None:
+        try:
+            sheet_instance = sheet.get_worksheet(secret.SHEET_INDEX)
+        except APIError:
+            content = "Looks like the Google Sheets API is having problems. Retrying in 2 minutes."
+            requests.post(secret.WEBHOOK_URL, {"content": content})
+            time.sleep(120)
 
     scores = {}
     for i in range(4):
